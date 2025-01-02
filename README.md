@@ -27,11 +27,15 @@ Use them by `*digex*` and `*pygex*` respectively.
 
 The trained models are saved in the `./src` folder. 
 
+The explanation results are saved in the `./res` folder.
+
 ---
 
 Here is an example of how this project works.
 
-**1. Train the GNN model**
+### Training a GNN model
+
+To train a target model, run the following:
 
 ```
 python train_nc.py --dataset cora --model gcn
@@ -39,7 +43,7 @@ python train_nc.py --dataset cora --model gcn
 
 The model will be saved in `./src`.
 
-**2. Explain the model**
+### Explain the model
 
 ```
 python run_pygex_nc.py --dataset cora --model gcn --explainer ours
@@ -47,7 +51,7 @@ python run_pygex_nc.py --dataset cora --model gcn --explainer ours
 
 The result will be saved in `./res/DATASET_NAME`
 
-**3. Evaluate the explanation performance**
+### Evaluate the explanation performance
 
 ```
 python eval_nc.py --dataset cora --model gcn --explainer ours
