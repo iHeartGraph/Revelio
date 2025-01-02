@@ -46,7 +46,7 @@ The model will be saved in `./src`.
 ### Explain the model
 
 ```
-python run_pygex_nc.py --dataset cora --model gcn --explainer ours
+python run_pygex_nc.py --dataset cora --model gcn --explainer revelio
 ```
 
 The result will be saved in `./res/DATASET_NAME`
@@ -54,5 +54,5 @@ The result will be saved in `./res/DATASET_NAME`
 ### Evaluate the explanation performance
 
 ```
-python eval_nc.py --dataset cora --model gcn --explainer ours
+python eval_nc.py --dataset cora --model gcn --explainer revelio
 ```
