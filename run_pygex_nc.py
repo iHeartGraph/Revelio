@@ -13,14 +13,16 @@ from torch_geometric.utils import k_hop_subgraph
 from models import GCN, GIN, GAT
 from configs import get_arguments
 from load_datasets import get_nc_dataset
-from explainers import GNNExplainer, PGExplainer, GraphMaskExplainer, MsgFlow
+from explainers import GNNExplainer, PGExplainer, GraphMaskExplainer, PGMExplainer, Revelio
 
+'''load dataset'''
 args = get_arguments()
 dataset_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'data')
 dataset_name = args.dataset.lower()
 dataset = get_nc_dataset(dataset_path, dataset_name, self_loops=True)
 data = dataset[0]
 
+'''load model'''
 if args.model.lower() == 'gcn':
     gnn = GCN(in_channels=dataset.num_node_features,
               hidden_channels=args.hidden_channels,
@@ -62,10 +64,11 @@ correct = (pred[data.test_mask] == data.y[data.test_mask]).sum()
 acc = torch.div(correct / data.test_mask.sum(), 1e-4, rounding_mode='floor') * 1e-4
 print(f'Accuracy: {acc*100:.2f}')
 
-if args.explainer == 'ours':
+'''select explainer'''
+if args.explainer == 'revelio':
     explainer = Explainer(
         model=gnn,
-        algorithm=MsgFlow(epochs=500, lr=1e-2, l_edge=True),
+        algorithm=Revelio(epochs=500, lr=1e-2, l_edge=True),
         explanation_type='model',
         edge_mask_type='object',
         model_config=dict(
@@ -111,6 +114,18 @@ elif args.explainer == 'graphmask':
             return_type='raw',
         )
     )
+elif args.explainer == 'pgmexplainer':
+    explainer = Explainer(
+        model=gnn,
+        algorithm=PGMExplainer(num_samples=1000, pred_threshold=0.01).to(device),
+        explanation_type='model',
+        node_mask_type='object',
+        model_config=dict(
+            mode='multiclass_classification',
+            task_level='node',
+            return_type='raw',
+        )
+    )
 else:
     raise ValueError()
 explainer.algorithm.fidelity_plus = args.fidelity_plus
@@ -118,6 +133,7 @@ explainer.algorithm.fidelity_plus = args.fidelity_plus
 res_dir = os.path.join('./res', model_name)
 os.makedirs(res_dir, exist_ok=True)
 
+'''select data to explain'''
 random.seed(2024)
 node_ids = list(range(data.num_nodes))
 random.shuffle(node_ids)
@@ -125,6 +141,7 @@ candidates = args.candidates
 if candidates is None or candidates > data.num_nodes:
     candidates = data.num_nodes
 
+'''train PGExplainer'''
 duration = 0.
 if args.explainer == 'pgexplainer':
     print('PGExplaienr training')
@@ -138,6 +155,7 @@ if args.explainer == 'pgexplainer':
     duration += time.perf_counter() - tic
     print('duration:', duration)
 
+'''explain'''
 duration = 0.
 pbar = tqdm(total=candidates)
 for node_index in node_ids:
@@ -159,13 +177,13 @@ for node_index in node_ids:
                             target=pred[indices] if args.explainer == 'pgexplainer' else None, index=mapping[0].item())
     duration += time.perf_counter() - tic
 
-    if args.explainer == 'ours':
+    if args.explainer == 'revelio':
         res = explanation.flows
         res['mask'] = explanation.edge_mask
     else:
         res = explanation.edge_mask
 
-    if args.fidelity_plus:
+    if args.fidelity_plus and args.explainer != 'pgmexplainer':
         torch.save(res, os.path.join(res_dir, args.explainer + '_plus_' + str(node_index) + '.pt'))
     else:
         torch.save(res, os.path.join(res_dir, args.explainer + '_' + str(node_index) + '.pt'))

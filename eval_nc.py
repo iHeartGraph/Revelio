@@ -76,8 +76,6 @@ loop_start = data.num_edges - data.num_nodes
 
 pbar = tqdm(total=candidates)
 for node_index in node_ids:
-    # if pred[node_index] == data.y[node_index] == 0 or pred[node_index] != data.y[node_index]:
-    #     continue
     indices, edge_index, mapping, mask = k_hop_subgraph(node_index,
                                                         args.num_layers + 1,
                                                         data.edge_index,
@@ -98,8 +96,8 @@ for node_index in node_ids:
     eval_nodes.append(node_index)
     pbar.update(1)
 
-    if args.explainer in ['ours', 'gnn-lrp', 'flowx']:
-        if args.fidelity_plus:
+    if args.explainer in ['revelio', 'gnn-lrp', 'flowx']:
+        if args.fidelity_plus and args.explainer != 'gnn-lrp':
             flows = torch.load(os.path.join(res_dir, args.explainer + '_plus_' + str(node_index) + '.pt'),
                                map_location='cpu')
         else:
@@ -107,7 +105,7 @@ for node_index in node_ids:
                                map_location='cpu')
         edge_mask = flows['mask']
     else:
-        if args.fidelity_plus:
+        if args.fidelity_plus and args.explainer not in ['deeplift', 'gradcam', 'pgmexplainer']:
             edge_mask = torch.load(os.path.join(res_dir, args.explainer + '_plus_' + str(node_index) + '.pt'),
                                    map_location='cpu')
         else:
@@ -132,19 +130,12 @@ for node_index in node_ids:
                                                                 relabel_nodes=True,
                                                                 num_nodes=data.num_nodes,
                                                                 directed=True)
-        '''edge masks without self-loop'''
-        # edge mask to undirected
-        # mask_adj = to_dense_adj(edge_index, edge_attr=edge_mask).squeeze()
-        # mask_adj += mask_adj.clone().t()
-        # edge_mask = mask_adj[(edge_index[0, :], edge_index[1, :])]
 
         # extend to fit the size of ground_truth
         mask[loop_start:] = False  # remove self-loop
         edge_mask = edge_mask[:torch.sum(mask)]
         edge_mask_long = torch.zeros(data.edge_index.shape[1], dtype=torch.float)
-        # mask = mask[:loop_start]
         edge_mask_long[mask] = edge_mask
-        # mask1 = mask1[:loop_start]
         mask1[loop_start:] = False
         y_true, y_pred = ground_truth[mask1], edge_mask_long[mask1]  # only compare edges within L layers
         if y_true.sum() == y_true.shape[0]:

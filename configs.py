@@ -3,7 +3,7 @@ import argparse
 
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='ba_shapes',
+    parser.add_argument('--dataset', type=str, default='cora',
                         # choices=['cora', 'citeseer', 'pubmed', 'cs', 'facebook', 'github', 'lastfmasia',
                         # 'house', 'ba_shapes', 'ba_community', 'tree_grid', 'tree_cycle', 'ba_2motifs',
                         # 'MUTAG', 'BBBP', 'ENZYMES', 'PROTEINS', 'TOX21', 'CLINTOX']
@@ -19,16 +19,16 @@ def get_arguments():
     parser.add_argument('--lr', type=float, default=1e-2)
     # house/ba2motif: 0
     # default: 0.5
-    parser.add_argument('--dropout', type=float, default=0.)
+    parser.add_argument('--dropout', type=float, default=0.5)
     # synthetic: leakyrelu
     # default: relu
     parser.add_argument('--act', type=str, default='relu')
     parser.add_argument('--readout', type=str, default='mean')
     parser.add_argument('--batch_size', type=int, default=32)
     '''explainer'''
-    parser.add_argument('--explainer', type=str, default='gnnexplainer',
-                        choices=['gnnexplainer', 'pgexplainer', 'graphmask',
-                                 'gnn-lrp', 'flowx', 'deeplift', 'gradcam', 'flowx'])
+    parser.add_argument('--explainer', type=str, default='revelio',
+                        choices=['gnnexplainer', 'pgexplainer', 'graphmask', 'pgmexplainer',
+                                 'gnn-lrp', 'flowx', 'deeplift', 'gradcam', 'flowx', 'revelio'])
     parser.add_argument('--candidates', type=int, default=50)  # the number of candidates to explain
     parser.add_argument('--fidelity_plus', action='store_true', default=False)
 

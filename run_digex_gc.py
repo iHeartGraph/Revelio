@@ -16,6 +16,7 @@ from configs import get_arguments
 from load_datasets import get_gc_dataset
 from explainers import GNN_LRP, FlowX, DeepLIFT, GradCAM
 
+'''load dataset'''
 args = get_arguments()
 dataset_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'data')
 dataset_name = args.dataset
@@ -29,6 +30,7 @@ train_batches = DataLoader(train, batch_size=args.batch_size, shuffle=True)
 eval_batches = DataLoader(eval, batch_size=num_eval)
 test_batches = DataLoader(test, batch_size=num_test)
 
+'''load model'''
 if args.model.lower() == 'gcn':
     gnn = GCN(in_channels=dataset.num_node_features,
               hidden_channels=args.hidden_channels,
@@ -74,6 +76,7 @@ correct = (pred == data.y.view(-1)).sum()
 acc = torch.div(correct / len(data), 1e-4, rounding_mode='floor') * 1e-4
 print(f'Accuracy: {acc * 100:.2f}')
 
+'''select explainer'''
 if args.explainer == 'gnn-lrp':
     explainer = GNN_LRP(gnn, explain_graph=True)
 elif args.explainer == 'flowx':
@@ -89,6 +92,7 @@ else:
 res_dir = os.path.join('./res', model_name)
 os.makedirs(res_dir, exist_ok=True)
 
+'''select data to explain'''
 random.seed(2024)
 graph_ids = list(range(len(dataset)))
 random.shuffle(graph_ids)
@@ -96,6 +100,7 @@ candidates = args.candidates
 if candidates is None or candidates > len(dataset):
     candidates = len(dataset)
 
+'''explain'''
 duration = 0.
 for index in tqdm(graph_ids[:candidates]):
     data = dataset[index].to(device)

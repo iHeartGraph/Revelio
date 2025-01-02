@@ -85,8 +85,8 @@ new_pred_drop = []
 new_pred_keep = []
 AUC = []
 for index in tqdm(graph_ids[:candidates]):
-    if args.explainer in ['ours', 'gnn-lrp', 'flowx']:
-        if args.fidelity_plus:
+    if args.explainer in ['revelio', 'gnn-lrp', 'flowx']:
+        if args.fidelity_plus and args.explainer != 'gnn-lrp':
             flows = torch.load(os.path.join(res_dir, args.explainer + '_plus_' + str(index) + '.pt'),
                                map_location='cpu')
         else:
@@ -94,7 +94,7 @@ for index in tqdm(graph_ids[:candidates]):
                                map_location='cpu')
         edge_mask = flows['mask']
     else:
-        if args.fidelity_plus:
+        if args.fidelity_plus and args.explainer not in ['deeplift', 'gradcam', 'pgmexplainer']:
             edge_mask = torch.load(os.path.join(res_dir, args.explainer + '_plus_' + str(index) + '.pt'),
                                    map_location='cpu')
         else:
