@@ -4,9 +4,28 @@ This repository contains the source code for the paper, **"Revelio: Revealing Im
 
 ![framework](./framework.svg)
 
-All the variables can be found in `config.py`
+## Requirements
+
+We use [Pytorch Geometric 2.5.0](https://pytorch-geometric.readthedocs.io/en/stable/) (PyG) and later for implementation. Please follow the instruction to install PyG.
+
+## Datasets
+
+The datasets can be directly loaded from PyG or via `load_datasets.py`.
+
+## Usage
+
+### Configuring the experiment
+
+We use `configs.py` to configure the experiment. Please check this file to see the complete list of options. 
+
+### Specifications
+
+Some explainers are borrowed from [DIG](https://diveintographs.readthedocs.io/en/latest/) and some are from PyG.
+Use them by `*digex*` and `*pygex*` respectively.
 
 `*_nc.py` and `*_gc.py` are codes for node classification and graph classification tasks respectively.
+
+The trained models are saved in the `./src` folder. 
 
 ---
 
